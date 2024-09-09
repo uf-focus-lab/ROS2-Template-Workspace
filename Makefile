@@ -32,7 +32,7 @@ build/deps:
 	@ rosdep install -i --from-path src --rosdistro $(ROS_DISTRO) -y
 	@ echo $$(date) > build/deps
 
-PACKAGES:=$(shell find . -iname package.xml | xargs scripts/package_name.py)
+PACKAGES:=$(shell find src -iname package.xml | xargs scripts/package_name.py)
 $(foreach p,$(PACKAGES),package/$(p)): build/deps
 	$(eval PACKAGE=$(shell basename $@))
 	@ echo
