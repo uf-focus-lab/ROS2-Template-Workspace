@@ -24,14 +24,24 @@ make build
 ### Selectively build one or more packages
 
 ```bash
-make src/package_1 src/package_2 # etc...
+make package/cat package/dog # etc...
 ```
+
+These targets can be auto-completed!
+
+Try press `Tab` key when typing.
+
+> Package names are extracted from `package.xml` files.
 
 ### Launch tasks listed under `launch`
 
 ```bash
 make launch/example.xml
 ```
+
+These targets can be auto-completed!
+
+Try press `Tab` key when typing.
 
 ### Enter ROS2 shell (bash) environment
 
