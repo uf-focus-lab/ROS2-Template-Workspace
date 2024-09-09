@@ -1,0 +1,20 @@
+# Template git ignore file for ROS2 template workspace
+# Author: Yuxuan Zhang
+
+# ROS2 Workspace Produced Files
+build
+install
+log
+
+# IDE
+.vscode
+
+# Auto Generated Clangd Helper
+compile_commands.json
+.cache
+
+# Python Runtime Cache
+__pycache__
+
+# Unix Sockets
+*.socket

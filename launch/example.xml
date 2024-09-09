@@ -1,0 +1,6 @@
+<!-- Minial launch file example -->
+<launch>
+  <node pkg="[package-name]" exec="[execuatble-name]" namespace="[namespace]">
+    <remap from="[src/topic]" to="[dst/topic]"/>
+  </node>
+</launch>
