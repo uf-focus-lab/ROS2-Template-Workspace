@@ -1,26 +1,14 @@
 #!/bin/bash
-# ============================================================
-# This is a simple script to prompt some simple questions
-# and create a ROS2 package using `ros2 pkg create`.
-# It saves me from remembering the magic spell.
-# ============================================================
-# Author: Yuxuan Zhang
-# Email : robotics@z-yx.cc
-# License: MIT
-# ============================================================
+# ========================================================
+# Copyright (c) 2024 Yuxuan Zhang, robotics@z-yx.cc
+# This source code is licensed under the MIT license.
+# You may find the full license in project root directory.
+# ========================================================
 ARGS=("ros2" "pkg" "create")
 LICENSE="MIT"
 PACKAGE_NAME=""
 cd src
 echo "Workspace source directory: $(pwd)"
-
-# Check for colcon
-if ! command -v colcon &> /dev/null; then
-    echo "colcon is required to create a package."
-    echo "Please install colcon using the following command:"
-    echo "pip3 install colcon-common-extensions"
-    exit 1
-fi
 
 # Ask for build type
 read -p "Build system [ament_cmake]: " BUILD_TYPE

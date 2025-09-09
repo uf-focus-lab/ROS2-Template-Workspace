@@ -1,67 +1,82 @@
-# ============================================================
-# Makescirpt for easy interaction with ROS2 commandline tools.
-# Please refer to README.md for instructions.
-# ============================================================
-# Author: Yuxuan Zhang
-# Email : robotics@z-yx.cc
-# License: MIT
-# ============================================================
+# ========================================================
+# Copyright (c) 2024 Yuxuan Zhang, robotics@z-yx.cc
+# This source code is licensed under the MIT license.
+# You may find the full license in project root directory.
+# ========================================================
 
 # Change default shell from `sh` to `bash` so we have `source` command available
 SHELL:=/bin/bash
-# Should have already been defined in setup scripts
-ROS_DISTRO?=$(shell ls /opt/ros/ | tr ' ' '\n' | head -n 1 || echo "N/A")
-# ROS2 Environment initialization
-ROS_SETUP?=/opt/ros/$(ROS_DISTRO)/setup.bash
+ROS_ENV:=source scripts/ros-env.sh
+# Find system python3 for CMake
+PYTHON3:=$(shell env -i which python3)
 # Build time environment variables
-BUILD_ENV?=
+# For debug build, use `CMAKE_ARGS=-DCMAKE_BUILD_TYPE=Debug make`
+CMAKE_ARGS?=
 # Ask CMake to generate compile_commands.json for each package
-BUILD_ENV+= CMAKE_EXPORT_COMPILE_COMMANDS=1
+CMAKE_ARGS+=-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+CMAKE_ARGS+=-DPython3_EXECUTABLE=$(PYTHON3)
+BUILD?=colcon build
 
-$(info Using ROS2::$(ROS_DISTRO))
+all: build/deps
+	$(eval CMD=$(BUILD) --cmake-args $(CMAKE_ARGS))
+	@ NONLOCAL=1 BANNER="$(CMD)" $(ROS_ENV) && \
+	  $(CMD); scripts/compiledb.py
 
-COLCON_BUILD_COMMAND?=colcon build
-build: build/deps
-	@ echo $(COLCON_BUILD_COMMAND)
-	@ source $(ROS_SETUP) && \
-	  $(BUILD_ENV) $(COLCON_BUILD_COMMAND); \
-	  scripts/compile_commands.py
+all/symlink: BUILD += --symlink-install
+all/symlink: all
 
 build/deps:
 	@ mkdir -p build
-	@ rosdep install -i --from-path src --rosdistro $(ROS_DISTRO) -y
+	@ NONLOCAL=1 $(ROS_ENV) && \
+	  rosdep update && \
+	  rosdep install -i \
+			--from-path src \
+			--rosdistro $${ROS_DISTRO} \
+			-y
 	@ echo $$(date) > build/deps
 
-PACKAGES:=$(shell find src -iname package.xml | xargs scripts/package_name.py)
-$(foreach p,$(PACKAGES),package/$(p)): build/deps
+PACKAGES:=$(shell scripts/package_name.py)
+PACKAGES:=$(addprefix package/, $(PACKAGES))
+$(PACKAGES): build/deps
 	$(eval PACKAGE=$(shell basename $@))
-	@ echo
-	@ echo "=================================================="
-	@ echo "Building package $(PACKAGE)"
-	@ echo "=================================================="
-	@ source $(ROS_SETUP) && \
-	  $(BUILD_ENV) $(COLCON_BUILD_COMMAND) --packages-select $(PACKAGE); \
-	  scripts/compile_commands.py
+	$(eval CMD=$(BUILD) --cmake-args $(CMAKE_ARGS) --packages-select $(PACKAGE))
+	$(info $(CMD))
+	@ $(CLR_ENV) \
+	  && NONLOCAL=1 BANNER="Building $(PACKAGE)" $(ROS_ENV) && \
+	  $(CMD); scripts/compile_commands.py
+
+PACKAGES_LN:=$(addsuffix /symlink, $(PACKAGES))
+$(PACKAGES_LN): BUILD += --symlink-install
+$(PACKAGES_LN): build/deps
+	$(eval PACKAGE=$(shell basename $(shell dirname $@)))
+	$(eval CMD=$(BUILD) --cmake-args $(CMAKE_ARGS) --packages-select $(PACKAGE))
+	$(info $(CMD))
+	@ NONLOCAL=1 BANNER="Building $(PACKAGE)" $(ROS_ENV) && \
+	  $(CMD); scripts/compile_commands.py
 
 # enumurate available launch files (for auto completion)
 LAUNCH_FILES:=$(wildcard launch/*)
 $(LAUNCH_FILES):
-	@ echo
-	@ echo "=================================================="
-	@ echo "Launching $@"
-	@ echo "=================================================="
-	@ source install/setup.bash && ros2 launch $@
+	@ BANNER="Launching $@" $(ROS_ENV) && \
+		ros2 launch $@
+
+# enumurate available launch files (for auto completion)
+RVIZ_CONFIGS:=$(patsubst config/%,%,$(wildcard config/*.rviz))
+$(RVIZ_CONFIGS):
+	@ BANNER="Visualizing $@" $(ROS_ENV) && \
+		ros2 run rviz2 rviz2 \
+			-d config/$@ \
+			--ros-args -p \
+			use_sim_time:=true
 
 sh shell bash:
-	@ clear; \
-	  ROS_DISTRO=$(ROS_DISTRO) \
-	  bash --rcfile scripts/ros-env.sh || true
+	@ clear && bash --rcfile scripts/shell.sh || true
 
 create:
-	@ mkdir -p src
-	@ source $(ROS_SETUP) && bash scripts/create-package.sh
+	@ NONLOCAL=1 $(ROS_ENV) && \
+	  scripts/create.sh
 
 clean:
 	rm -rf build install .cache
 
-.PHONY: build run clean $(LAUNCH_FILES) $(PACKAGES) sh shell bash create
+.PHONY: build run clean $(LAUNCH_FILES) $(PACKAGES) sh shell bash

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # ============================================================
+# Copyright (c) 2024 Yuxuan Zhang, robotics@z-yx.cc
+# This source code is licensed under the MIT license.
+# You may find the full license in project root directory.
+# ============================================================
 # This python3 script aggregates all compile_commands.json
 # files from build directories into a single file at the
 # workspace root folder.
@@ -8,10 +12,6 @@
 # ============================================================
 # This script is supposed to be run from the workspace root.
 # Makefile will automatically run this after build completes.
-# ============================================================
-# Author: Yuxuan Zhang
-# Email : robotics@z-yx.cc
-# License: MIT
 # ============================================================
 
 import json

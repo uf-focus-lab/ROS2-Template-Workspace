@@ -1,5 +1,10 @@
+# ========================================================
+# Copyright (c) 2024 Yuxuan Zhang, robotics@z-yx.cc
+# This source code is licensed under the MIT license.
+# You may find the full license in project root directory.
+# ========================================================
 # Template git ignore file for ROS2 template workspace
-# Author: Yuxuan Zhang
+# ========================================================
 
 # ROS2 Workspace Produced Files
 build
